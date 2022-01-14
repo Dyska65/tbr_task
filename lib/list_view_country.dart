@@ -149,12 +149,9 @@ class _ListAllCountryState extends State<ListAllCountry> {
       itemCount: list.length,
       itemBuilder: (BuildContext context, int index) {
         return ListTile(
-          contentPadding: EdgeInsets.all(0),
-          // minLeadingWidth: 10,
+          contentPadding: const EdgeInsets.all(0),
           onTap: () {
             Navigator.pop(context, list[index]);
-
-            print(" ${list[index].name}");
           },
           leading: Text(
             list[index].flag,
