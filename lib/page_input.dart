@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:test_tbr/country.dart';
 import 'package:test_tbr/get_countries.dart';
 import 'package:test_tbr/list_view_country.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class InputPhoneNumber extends StatefulWidget {
   const InputPhoneNumber({Key? key}) : super(key: key);
@@ -16,10 +17,12 @@ List<Country> allCountry = [];
 class _InputPhoneNumberState extends State<InputPhoneNumber> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _controller = TextEditingController();
-  String newText = '';
   bool isLoaded = false;
   Country? country;
   String currentCountryCode = '';
+  var maskFormatter = MaskTextInputFormatter(
+      mask: '####-####', filter: {"#": RegExp(r'[0-9]')});
+  late double width;
 
   Future<void> loadData() async {
     try {
@@ -48,6 +51,8 @@ class _InputPhoneNumberState extends State<InputPhoneNumber> {
 
   @override
   Widget build(BuildContext context) {
+    width = MediaQuery.of(context).size.width;
+
     if (allCountry.isNotEmpty) {
       country == null
           ? country = allCountry
@@ -56,44 +61,44 @@ class _InputPhoneNumberState extends State<InputPhoneNumber> {
     }
 
     return Scaffold(
-        body: Container(
-          constraints: const BoxConstraints(
-              maxHeight: double.infinity, maxWidth: double.infinity),
-          padding: const EdgeInsets.fromLTRB(20, 80, 11, 10),
-          color: const Color(0xFF8EAAFB),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                title(),
-                Row(children: [chooseCountry(), formForInputNumber()])
-              ],
-            ),
+      body: Container(
+        constraints: const BoxConstraints(
+            maxHeight: double.infinity, maxWidth: double.infinity),
+        padding: const EdgeInsets.fromLTRB(20, 80, 11, 10),
+        color: const Color(0xFF8EAAFB),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              title(),
+              Row(children: [chooseCountry(), formForInputNumber()])
+            ],
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          elevation: 0,
-          backgroundColor: _controller.text.length >= 10
-              ? const Color(0xFFFFFFFF)
-              : const Color(0x99F4F5FF),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          onPressed: () {
-            if (_controller.text.length >= 10) {
-              if (_formKey.currentState!.validate()) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('You enter mobile number')),
-                );
-              }
+      ),
+      floatingActionButton: FloatingActionButton(
+        elevation: 0,
+        backgroundColor: _controller.text.length == 14
+            ? const Color(0xFFFFFFFF)
+            : const Color(0x99F4F5FF),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        onPressed: () {
+          if (_controller.text.length == 14) {
+            if (_formKey.currentState!.validate()) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('You enter mobile number')),
+              );
             }
-          },
-          child: const Icon(
-            Icons.arrow_forward,
-            color: Color(0xFF7886B8),
-          ),
+          }
+        },
+        child: const Icon(
+          Icons.arrow_forward,
+          color: Color(0xFF7886B8),
         ),
-        resizeToAvoidBottomInset: false);
+      ),
+    );
   }
 
   Widget title() {
@@ -114,7 +119,7 @@ class _InputPhoneNumberState extends State<InputPhoneNumber> {
 
   Widget chooseCountry() {
     return Container(
-      width: MediaQuery.of(context).size.width / 5,
+      width: width / 5,
       margin: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -160,7 +165,7 @@ class _InputPhoneNumberState extends State<InputPhoneNumber> {
   Widget formForInputNumber() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-      width: MediaQuery.of(context).size.width / 1.6,
+      width: width / 1.6,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           color: const Color(0x99F4F5FF)),
@@ -170,63 +175,32 @@ class _InputPhoneNumberState extends State<InputPhoneNumber> {
 
   Widget inputNumber() {
     return TextFormField(
-        controller: _controller,
-        textAlignVertical: TextAlignVertical.center,
-        style: const TextStyle(
-          color: Color(0xFF594C74),
-          fontFamily: 'Inter',
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-        maxLength: 13,
-        decoration: const InputDecoration(
-            counterText: '',
-            contentPadding: EdgeInsets.all(7),
-            border: InputBorder.none,
-            hintText: "(011)222-5555",
-            hintStyle: TextStyle(
-              color: Color(0xFF7886B8),
-              fontFamily: 'Inter',
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            )),
-        keyboardType: const TextInputType.numberWithOptions(),
-        maxLines: 1,
-        validator: (value) {
-          String result = value!.replaceAll(RegExp(r'[^0-9]'), '');
-          if (result.length != 10) {
-            return 'Please enter all mobile number';
-          }
-          return null;
-        });
+      controller: _controller,
+      textAlignVertical: TextAlignVertical.center,
+      style: const TextStyle(
+        color: Color(0xFF594C74),
+        fontFamily: 'Inter',
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+      ),
+      decoration: const InputDecoration(
+          counterText: '',
+          border: InputBorder.none,
+          hintText: "(011) 222-5555",
+          hintStyle: TextStyle(
+            color: Color(0xFF7886B8),
+            fontFamily: 'Inter',
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          )),
+      keyboardType: const TextInputType.numberWithOptions(),
+      inputFormatters: [maskFormatter],
+      maxLines: 1,
+    );
   }
 
   void onChange() {
-    String text = _controller.text;
-    if (text.length < newText.length) {
-      newText = text;
-    } else if (text.isNotEmpty && text != newText) {
-      newText = newText + text.substring(text.length - 1);
-      _controller.text = newText;
-      text = newText;
-      switch (text.length) {
-        case 1:
-          newText = '($text';
-          _controller.text = newText;
-          break;
-        case 4:
-          newText = text + ')';
-          _controller.text = newText;
-          break;
-        case 8:
-          newText = text + '-';
-          _controller.text = newText;
-          break;
-        default:
-      }
-    }
-    _controller.selection =
-        TextSelection(baseOffset: newText.length, extentOffset: newText.length);
+    _controller.value = maskFormatter.updateMask(mask: "(###) ###-####");
     setState(() {});
   }
 }

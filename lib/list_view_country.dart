@@ -26,12 +26,15 @@ class _ListAllCountryState extends State<ListAllCountry> {
   filteringList() {
     List<Country> filtr = [];
     String firstLetter = _searchview.text.trimLeft().substring(0, 1);
-
+    String pattern = r'(^[0-9])';
+    RegExp regExp = RegExp(pattern);
     for (var country in allCountry) {
-      if (firstLetter == '+') {
+      if (firstLetter == '+' || regExp.hasMatch(_searchview.text)) {
         country.code.contains(_searchview.text) ? filtr.add(country) : null;
       } else {
-        country.name.contains(_searchview.text) ? filtr.add(country) : null;
+        country.name.toLowerCase().contains(_searchview.text.toLowerCase())
+            ? filtr.add(country)
+            : null;
       }
     }
     setState(() {
